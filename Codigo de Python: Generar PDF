@@ -1,0 +1,1707 @@
+# =========================================================
+# GENERADOR PDF LATEX - PROYECTO FINAL ESTADÍSTICA
+# BÉLGICA - OCDE
+# =========================================================
+
+from pylatex import *
+from pylatex.utils import NoEscape
+import os
+import subprocess
+import platform
+
+# =========================================================
+# INSTALAR LATEX AUTOMÁTICAMENTE (SOLO WINDOWS)
+# =========================================================
+
+import shutil
+
+if shutil.which("xelatex") is None:
+
+    print("XeLaTeX no encontrado.")
+    print("Instalando TinyTeX...")
+
+    os.system(
+        'winget install --id MiKTeX.MiKTeX -e'
+    )
+
+# =========================================================
+# INSTALAR LIBRERÍAS AUTOMÁTICAMENTE
+# =========================================================
+
+import sys
+import pkgutil
+import importlib.util
+
+def instalar(paquete):
+
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", paquete]
+    )
+
+paquetes = [
+    "matplotlib",
+    "numpy",
+    "matplotlib-venn"
+]
+
+for paquete in paquetes:
+
+    nombre_import = paquete.replace("-", "_")
+
+    if importlib.util.find_spec(nombre_import) is None:
+
+        print(f"Instalando {paquete}...")
+        instalar(paquete)
+
+# =========================================================
+# IMPORTAR LIBRERÍAS
+# =========================================================
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from matplotlib_venn import venn2
+
+# =========================================================
+# ESTILO PROFESIONAL
+# =========================================================
+
+plt.rcParams['font.family'] = 'serif'
+
+rosa = '#ff2885'
+rosa_claro = '#ff9ac7'
+gris = '#444444'
+
+# =========================================================
+# FUNCIÓN GUARDAR
+# =========================================================
+
+def guardar_grafica(nombre):
+
+    plt.tight_layout()
+
+    plt.savefig(
+        nombre,
+        dpi=300,
+        bbox_inches='tight'
+    )
+
+    plt.close()
+
+# =========================================================
+# GRAFICA DESVIACIÓN ESTÁNDAR
+# =========================================================
+
+datos = np.random.normal(
+    1044,
+    7030,
+    1000
+)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    datos,
+    bins=30,
+    color=rosa,
+    edgecolor='black'
+)
+
+plt.title(
+    'Desviación Estándar',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Valores')
+plt.ylabel('Frecuencia')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_desviacion.png")
+
+# =========================================================
+# GRAFICA VENN
+# =========================================================
+
+plt.figure(figsize=(8,8))
+
+venn2(
+    subsets=(1014, 1274, 13),
+    set_labels=('USA', 'C10T12')
+)
+
+plt.title(
+    'Diagrama de Venn',
+    fontsize=18,
+    fontweight='bold'
+)
+
+guardar_grafica("grafica_venn.png")
+
+# =========================================================
+# GRAFICA BINOMIAL
+# =========================================================
+
+x = np.arange(0, 11)
+
+y = np.array([
+    0.001,
+    0.01,
+    0.04,
+    0.12,
+    0.20,
+    0.24,
+    0.20,
+    0.12,
+    0.05,
+    0.01,
+    0.001
+])
+
+plt.figure(figsize=(10,6))
+
+plt.bar(
+    x,
+    y,
+    color=rosa,
+    edgecolor='black'
+)
+
+plt.title(
+    'Distribución Binomial',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Eventos')
+plt.ylabel('Probabilidad')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_binomial.png")
+
+# =========================================================
+# GRAFICA POISSON
+# =========================================================
+
+import math
+
+x = np.arange(0, 15)
+
+lam = 3
+
+y = ((lam ** x) * np.exp(-lam)) / \
+    np.array([math.factorial(int(i)) for i in x])
+
+plt.figure(figsize=(10,6))
+
+plt.plot(
+    x,
+    y,
+    marker='o',
+    linewidth=3,
+    color=rosa
+)
+
+plt.fill_between(
+    x,
+    y,
+    alpha=0.3,
+    color=rosa_claro
+)
+
+plt.title(
+    'Distribución Poisson',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Eventos')
+plt.ylabel('Probabilidad')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_poisson.png")
+
+# =========================================================
+# GRAFICA HIPERGEOMÉTRICA
+# =========================================================
+
+x = np.arange(0, 6)
+
+y = [0.05, 0.15, 0.40, 0.25, 0.10, 0.05]
+
+plt.figure(figsize=(10,6))
+
+plt.bar(
+    x,
+    y,
+    color=rosa_claro,
+    edgecolor='black'
+)
+
+plt.title(
+    'Distribución Hipergeométrica',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Eventos')
+plt.ylabel('Probabilidad')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_hiper.png")
+
+# =========================================================
+# GRAFICA NORMAL
+# =========================================================
+
+datos = np.random.normal(
+    981,
+    6723,
+    1000
+)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    datos,
+    bins=30,
+    density=True,
+    color=rosa,
+    edgecolor='black',
+    alpha=0.8
+)
+
+plt.title(
+    'Distribución Normal',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Valores')
+plt.ylabel('Densidad')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_normal.png")
+
+# =========================================================
+# GRAFICA Z
+# =========================================================
+
+z = np.random.normal(
+    0,
+    1,
+    1000
+)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    z,
+    bins=30,
+    density=True,
+    color=rosa_claro,
+    edgecolor='black'
+)
+
+plt.title(
+    'Distribución Normal Estándar',
+    fontsize=18,
+    fontweight='bold'
+)
+
+plt.xlabel('Z-Score')
+plt.ylabel('Densidad')
+
+plt.grid(alpha=0.3)
+
+guardar_grafica("grafica_z.png")
+
+# =========================================================
+# CONFIGURACIÓN
+# =========================================================
+
+nombre_pdf = "Python_Belgica"
+
+# =========================================================
+# CREAR DOCUMENTO
+# =========================================================
+
+geometry_options = {
+    "margin": "1in"
+}
+
+doc = Document(
+    nombre_pdf,
+    geometry_options=geometry_options
+)
+
+# =========================================================
+# PAQUETES
+# =========================================================
+
+doc.packages.append(Package('xcolor'))
+doc.packages.append(Package('listings'))
+doc.packages.append(Package('geometry'))
+doc.packages.append(Package('pdflscape'))
+doc.packages.append(Package('titlesec'))
+doc.packages.append(Package('hyperref'))
+doc.packages.append(Package('fontspec'))
+doc.packages.append(Package('graphicx'))
+
+# =========================================================
+# FUENTE
+# =========================================================
+
+doc.preamble.append(
+    NoEscape(r'\setmainfont{Times New Roman}')
+)
+
+# =========================================================
+# COLORES
+# =========================================================
+
+doc.preamble.append(NoEscape(r'''
+\definecolor{rosa}{RGB}{255,40,133}
+\definecolor{gris}{RGB}{245,245,245}
+
+\titleformat{\section}
+{\normalfont\Huge\bfseries\color{rosa}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\Large\bfseries\color{rosa}}
+{\thesubsection}{1em}{}
+
+\lstset{
+    language=Python,
+    basicstyle=\tiny\ttfamily,
+    backgroundcolor=\color{gris},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    columns=fullflexible,
+    keepspaces=true,
+    frame=single,
+    tabsize=4
+}
+'''))
+
+# =========================================================
+# PORTADA
+# =========================================================
+
+doc.append(NoEscape(r'\begin{center}'))
+doc.append(NoEscape(r'\vspace*{5cm}'))
+
+doc.append(
+    NoEscape(
+        r'{\Huge \textbf{\textcolor{rosa}{Python: Bélgica}}}\\[3cm]'
+    )
+)
+
+doc.append(
+    NoEscape(
+        r'{\Huge Ramos Vázquez Valeria Carolina}\\[2cm]'
+    )
+)
+
+doc.append(
+    NoEscape(
+        r'''
+        {\large
+        Organización para la Cooperación y el Desarrollo Económicos \\[0.3cm]
+        Trade in Value Added (TiVA)
+        }
+        '''
+    )
+)
+
+doc.append(NoEscape(r'\end{center}'))
+doc.append(NoEscape(r'\newpage'))
+
+# =========================================================
+# SCRIPT
+# =========================================================
+
+script_python = r'''
+# =========================================================
+# PROYECTO FINAL ESTADÍSTICA
+# OCDE - BÉLGICA
+# BIG DATA ECONÓMICO
+# =========================================================
+
+# =========================================================
+# IMPORTACIONES
+# =========================================================
+
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+from math import factorial, comb, perm
+from matplotlib_venn import venn2
+
+# =========================================================
+# CONFIGURACIÓN
+# =========================================================
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+
+# =========================================================
+# INTRODUCCIÓN
+# =========================================================
+
+print("="*60)
+print("PROYECTO FINAL - ESTADÍSTICA")
+print("OCDE DATA EXPLORER - BÉLGICA")
+print("="*60)
+
+print("\nEste proyecto utiliza Big Data económico de la OCDE")
+print("para realizar análisis estadísticos sobre Bélgica.")
+
+# =========================================================
+# API OCDE
+# =========================================================
+
+url = "https://sdmx.oecd.org/sti-public/rest/data/OECD.STI.PIE,DSD_TIVA_MAINLV@DF_MAINLV,1.1/FFD_DVA.....A?startPeriod=2010&dimensionAtObservation=AllDimensions&format=jsondata"
+
+print("\nConectando con API de la OCDE...")
+
+response = requests.get(url)
+
+print("Status Code:", response.status_code)
+
+# =========================================================
+# CARGAR JSON
+# =========================================================
+
+data = response.json()
+
+print("\nJSON cargado correctamente ✅")
+
+# =========================================================
+# EXTRAER OBSERVACIONES
+# =========================================================
+
+observations = data['data']['dataSets'][0]['observations']
+
+N_total = len(observations)
+
+print("\nTOTAL DE OBSERVACIONES:", N_total)
+
+# =========================================================
+# EXTRAER DIMENSIONES
+# =========================================================
+
+dimensions = data['data']['structures'][0]['dimensions']['observation']
+
+dim_values = {}
+
+for dim in dimensions:
+
+    dim_name = dim['id']
+
+    values = []
+
+    for v in dim['values']:
+        values.append(v.get('id', ''))
+
+    dim_values[dim_name] = values
+
+# =========================================================
+# CONVERTIR A DATAFRAME
+# =========================================================
+
+rows = []
+
+for key, value in observations.items():
+
+    indexes = list(map(int, key.split(":")))
+
+    row = {}
+
+    for i, dim_name in enumerate(dim_values.keys()):
+        row[dim_name] = dim_values[dim_name][indexes[i]]
+
+    row["VALUE"] = value[0]
+
+    rows.append(row)
+
+# =========================================================
+# CREAR DATAFRAME
+# =========================================================
+
+df = pd.DataFrame(rows)
+
+print("\nDataFrame creado correctamente ✅")
+
+# =========================================================
+# FILTRAR BÉLGICA
+# =========================================================
+
+belgica = df[df["REF_AREA"] == "BEL"].copy()
+
+print("\n" + "="*60)
+print("DATOS FILTRADOS DE BÉLGICA")
+print("="*60)
+
+print("\nNúmero de registros de Bélgica:")
+print(len(belgica))
+
+print("\nPrimeras filas:")
+print(belgica.head())
+
+# =========================================================
+# CREAR VARIABLE ORDINAL
+# =========================================================
+
+belgica["NIVEL"] = pd.cut(
+    belgica["VALUE"],
+    bins=3,
+    labels=["Bajo", "Medio", "Alto"]
+)
+
+# =========================================================
+# 2. MEDIDAS DE TENDENCIA CENTRAL
+# =========================================================
+
+print("\n\n" + "="*60)
+print("2. MEDIDAS DE TENDENCIA CENTRAL")
+print("="*60)
+
+# =========================================================
+# 2.1 MODA AGRUPADA
+# =========================================================
+
+print("\n\n2.1 MODA AGRUPADA")
+print("-"*60)
+
+nmoda_nominal = belgica["ACTIVITY"].mode()[0]
+frecuencia_nominal = belgica["ACTIVITY"].value_counts().iloc[0]
+
+print("\nMODA AGRUPADA NOMINAL")
+print("Moda:", nmoda_nominal)
+print("Frecuencia:", frecuencia_nominal)
+
+moda_ordinal = belgica["NIVEL"].mode()[0]
+frecuencia_ordinal = belgica["NIVEL"].value_counts().iloc[0]
+
+print("\nMODA AGRUPADA ORDINAL")
+print("Moda:", moda_ordinal)
+print("Frecuencia:", frecuencia_ordinal)
+
+intervalos = pd.cut(belgica["VALUE"], bins=10)
+moda_metrica = intervalos.value_counts().idxmax()
+frecuencia_metrica = intervalos.value_counts().max()
+
+print("\nMODA AGRUPADA MÉTRICA")
+print("Intervalo modal:", moda_metrica)
+print("Frecuencia:", frecuencia_metrica)
+
+# =========================================================
+# 2.2 MEDIANA AGRUPADA
+# =========================================================
+
+print("\n\n2.2 MEDIANA AGRUPADA")
+print("-"*60)
+
+ordinal_codigos = belgica["NIVEL"].cat.codes
+
+mediana_ordinal = ordinal_codigos.median()
+
+niveles = ["Bajo", "Medio", "Alto"]
+
+print("\nMEDIANA AGRUPADA ORDINAL")
+print("Código mediano:", mediana_ordinal)
+print("Nivel aproximado:", niveles[int(mediana_ordinal)])
+
+intervalos_mediana = pd.cut(belgica["VALUE"], bins=10)
+
+tabla_mediana = intervalos_mediana.value_counts().sort_index()
+
+frecuencia_acumulada = tabla_mediana.cumsum()
+
+N = len(belgica)
+
+posicion_mediana = N / 2
+
+intervalo_mediano = frecuencia_acumulada[
+    frecuencia_acumulada >= posicion_mediana
+].index[0]
+
+print("\nMEDIANA AGRUPADA MÉTRICA")
+print("Posición:", posicion_mediana)
+print("Intervalo mediano:", intervalo_mediano)
+
+# =========================================================
+# 2.3 MEDIA AGRUPADA
+# =========================================================
+
+print("\n\n2.3 MEDIA AGRUPADA")
+print("-"*60)
+
+intervalos_media = pd.cut(belgica["VALUE"], bins=10)
+
+tabla_media = intervalos_media.value_counts().sort_index()
+
+marcas_clase = []
+
+for intervalo in tabla_media.index:
+
+    marca = (intervalo.left + intervalo.right) / 2
+
+    marcas_clase.append(marca)
+
+tabla_agrupada = pd.DataFrame({
+    "Intervalo": tabla_media.index,
+    "Frecuencia": tabla_media.values,
+    "Marca_Clase": marcas_clase
+})
+
+tabla_agrupada["f_x_m"] = (
+    tabla_agrupada["Frecuencia"] *
+    tabla_agrupada["Marca_Clase"]
+)
+
+media_agrupada = (
+    tabla_agrupada["f_x_m"].sum() /
+    tabla_agrupada["Frecuencia"].sum()
+)
+
+print("\nMEDIA AGRUPADA MÉTRICA")
+print("Media agrupada:", media_agrupada)
+
+print("\nPrimeros intervalos:")
+print(tabla_agrupada.head())
+
+# =========================================================
+# 2.4 MODA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.4 MODA NO AGRUPADA")
+print("-"*60)
+
+moda_nominal_ng = belgica["ACTIVITY"].mode()[0]
+frecuencia_nominal_ng = belgica["ACTIVITY"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA NOMINAL")
+print("Moda:", moda_nominal_ng)
+print("Frecuencia:", frecuencia_nominal_ng)
+
+moda_ordinal_ng = belgica["NIVEL"].mode()[0]
+frecuencia_ordinal_ng = belgica["NIVEL"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA ORDINAL")
+print("Moda:", moda_ordinal_ng)
+print("Frecuencia:", frecuencia_ordinal_ng)
+
+moda_metrica_ng = belgica["VALUE"].mode()[0]
+frecuencia_metrica_ng = belgica["VALUE"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA MÉTRICA")
+print("Moda:", moda_metrica_ng)
+print("Frecuencia:", frecuencia_metrica_ng)
+
+# =========================================================
+# 2.5 MEDIANA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.5 MEDIANA NO AGRUPADA")
+print("-"*60)
+
+mediana_ordinal_ng = ordinal_codigos.median()
+
+print("\nMEDIANA NO AGRUPADA ORDINAL")
+print("Resultado:", niveles[int(mediana_ordinal_ng)])
+
+mediana_metrica_ng = belgica["VALUE"].median()
+
+print("\nMEDIANA NO AGRUPADA MÉTRICA")
+print("Mediana:", mediana_metrica_ng)
+
+# =========================================================
+# 2.6 MEDIA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.6 MEDIA NO AGRUPADA")
+print("-"*60)
+
+media_ng = belgica["VALUE"].mean()
+
+print("\nMEDIA NO AGRUPADA MÉTRICA")
+print("Media:", media_ng)
+
+# =========================================================
+# 3. MEDIDAS DE DISPERSIÓN
+# =========================================================
+
+print("\n\n" + "="*60)
+print("3. MEDIDAS DE DISPERSIÓN")
+print("="*60)
+
+# =========================================================
+# 3.1 RANGO
+# =========================================================
+
+rango = belgica["VALUE"].max() - belgica["VALUE"].min()
+
+print("\n3.1 RANGO")
+print("Rango:", rango)
+
+# =========================================================
+# 3.2 RANGO INTERCUARTÍLICO
+# =========================================================
+
+Q1 = belgica["VALUE"].quantile(0.25)
+Q3 = belgica["VALUE"].quantile(0.75)
+
+RIC = Q3 - Q1
+
+print("\n3.2 RANGO INTERCUARTÍLICO")
+print("Q1:", Q1)
+print("Q3:", Q3)
+print("RIC:", RIC)
+
+# =========================================================
+# 3.3 VARIANZA
+# =========================================================
+
+varianza = belgica["VALUE"].var()
+
+print("\n3.3 VARIANZA")
+print("Varianza:", varianza)
+
+# =========================================================
+# 3.4 DESVIACIÓN ESTÁNDAR
+# =========================================================
+
+desv_std = belgica["VALUE"].std()
+
+print("\n3.4 DESVIACIÓN ESTÁNDAR")
+print("Desviación estándar:", desv_std)
+
+# TABLA DESVIACIÓN ESTÁNDAR
+
+tabla_desv = pd.DataFrame({
+    "Media": [belgica["VALUE"].mean()],
+    "Desviacion_Estandar": [desv_std],
+    "Valor_Minimo": [belgica["VALUE"].min()],
+    "Valor_Maximo": [belgica["VALUE"].max()]
+})
+
+print("\nTABLA DESVIACIÓN ESTÁNDAR")
+print(tabla_desv)
+
+# GRÁFICA DESVIACIÓN ESTÁNDAR
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    belgica["VALUE"].sample(5000, random_state=42),
+    bins=30
+)
+
+plt.axvline(
+    belgica["VALUE"].mean(),
+    linestyle='dashed',
+    linewidth=2
+)
+
+plt.title("3.4 DESVIACIÓN ESTÁNDAR")
+plt.xlabel("VALUE")
+plt.ylabel("Frecuencia")
+
+plt.show()
+
+# =========================================================
+# 3.5 DESVIACIÓN MEDIA
+# =========================================================
+
+media = belgica["VALUE"].mean()
+
+desv_media = np.mean(np.abs(belgica["VALUE"] - media))
+
+print("\n3.5 DESVIACIÓN MEDIA")
+print("Desviación media:", desv_media)
+
+# =========================================================
+# 4. INTRODUCCIÓN PROBABILIDAD
+# =========================================================
+
+print("\n\n" + "="*60)
+print("4. INTRODUCCIÓN PROBABILIDAD")
+print("="*60)
+
+# =========================================================
+# 4.1 DIAGRAMA DE VENN
+# =========================================================
+
+print("\n4.1 DIAGRAMA DE VENN")
+
+A = set(belgica[belgica["COUNTERPART_AREA"] == "USA"].index)
+B = set(belgica[belgica["ACTIVITY"] == "C10T12"].index)
+
+# TABLA VENN
+
+tabla_venn = pd.DataFrame({
+    "Conjunto": ["USA", "C10T12", "Intersección"],
+    "Cantidad": [
+        len(A),
+        len(B),
+        len(A.intersection(B))
+    ]
+})
+
+print("\nTABLA DIAGRAMA DE VENN")
+print(tabla_venn)
+
+# GRÁFICA VENN
+
+plt.figure(figsize=(8,8))
+
+venn2([A, B], ('USA', 'C10T12'))
+
+plt.title("4.1 DIAGRAMA DE VENN")
+
+plt.show()
+
+# =========================================================
+# 4.2 CONTEO
+# =========================================================
+
+conteo = belgica["ACTIVITY"].value_counts().head(10)
+
+print("\n4.2 CONTEO")
+print(conteo)
+
+# =========================================================
+# 4.3 COMBINACIÓN
+# =========================================================
+
+combinacion = comb(10, 3)
+
+print("\n4.3 COMBINACIÓN")
+print("C(10,3) =", combinacion)
+
+# =========================================================
+# 4.4 PERMUTACIÓN
+# =========================================================
+
+permutacion = perm(10, 3)
+
+print("\n4.4 PERMUTACIÓN")
+print("P(10,3) =", permutacion)
+
+# =========================================================
+# 4.5 PROBABILIDAD CONDICIONAL
+# =========================================================
+
+P_A = len(A) / len(belgica)
+P_B = len(B) / len(belgica)
+P_AyB = len(A.intersection(B)) / len(belgica)
+
+P_condicional = P_AyB / P_B
+
+print("\n4.5 PROBABILIDAD CONDICIONAL")
+print("P(A|B):", P_condicional)
+
+# =========================================================
+# 4.6 TEOREMA DE BAYES
+# =========================================================
+
+bayes = (P_AyB * P_A) / P_B
+
+print("\n4.6 TEOREMA DE BAYES")
+print("Resultado:", bayes)
+
+# =========================================================
+# 5. DISTRIBUCIONES VAD
+# =========================================================
+
+print("\n\n" + "="*60)
+print("5. DISTRIBUCIONES DE PROBABILIDAD VAD")
+print("="*60)
+
+# =========================================================
+# 5.1 DISTRIBUCIÓN BINOMIAL
+# =========================================================
+
+x_binomial = np.arange(0, 11)
+
+y_binomial = stats.binom.pmf(x_binomial, 10, 0.5)
+
+tabla_binomial = pd.DataFrame({
+    "x": x_binomial,
+    "Probabilidad": y_binomial
+})
+
+print("\n5.1 DISTRIBUCIÓN BINOMIAL")
+print(tabla_binomial)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_binomial, y_binomial)
+
+plt.title("5.1 DISTRIBUCIÓN BINOMIAL")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 5.2 DISTRIBUCIÓN POISSON
+# =========================================================
+
+x_poisson = np.arange(0, 15)
+
+y_poisson = stats.poisson.pmf(x_poisson, mu=2)
+
+tabla_poisson = pd.DataFrame({
+    "x": x_poisson,
+    "Probabilidad": y_poisson
+})
+
+print("\n5.2 DISTRIBUCIÓN POISSON")
+print(tabla_poisson)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_poisson, y_poisson)
+
+plt.title("5.2 DISTRIBUCIÓN POISSON")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA
+# =========================================================
+
+x_hiper = np.arange(0, 6)
+
+y_hiper = stats.hypergeom.pmf(x_hiper, 20, 7, 5)
+
+tabla_hiper = pd.DataFrame({
+    "x": x_hiper,
+    "Probabilidad": y_hiper
+})
+
+print("\n5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA")
+print(tabla_hiper)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_hiper, y_hiper)
+
+plt.title("5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 6. DISTRIBUCIONES VAC
+# =========================================================
+
+print("\n\n" + "="*60)
+print("6. DISTRIBUCIONES DE PROBABILIDAD VAC")
+print("="*60)
+
+# =========================================================
+# 6.1 DISTRIBUCIÓN NORMAL
+# =========================================================
+
+print("\n6.1 DISTRIBUCIÓN NORMAL")
+
+muestra = belgica["VALUE"].sample(5000, random_state=42)
+
+mu = muestra.mean()
+sigma = muestra.std()
+
+tabla_normal = pd.DataFrame({
+    "Media": [mu],
+    "Desviacion_Estandar": [sigma],
+    "Minimo": [muestra.min()],
+    "Maximo": [muestra.max()]
+})
+
+print("\nTABLA DISTRIBUCIÓN NORMAL")
+print(tabla_normal)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    muestra,
+    bins=30,
+    density=True
+)
+
+xmin, xmax = plt.xlim()
+
+x = np.linspace(xmin, xmax, 100)
+
+p = stats.norm.pdf(x, mu, sigma)
+
+plt.plot(x, p)
+
+plt.title("6.1 DISTRIBUCIÓN NORMAL")
+plt.xlabel("VALUE")
+plt.ylabel("Densidad")
+
+plt.show()
+
+print("Media:", mu)
+print("Desviación estándar:", sigma)
+
+# =========================================================
+# 6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR
+# =========================================================
+
+print("\n6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR")
+
+z_scores = stats.zscore(muestra)
+
+tabla_z = pd.DataFrame({
+    "Primeros_ZScores": z_scores[:10]
+})
+
+print("\nTABLA Z-SCORES")
+print(tabla_z)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    z_scores,
+    bins=30,
+    density=True
+)
+
+plt.title("6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR")
+plt.xlabel("Z-Score")
+plt.ylabel("Densidad")
+
+plt.show()
+
+# =========================================================
+# 7. ÍNDICES
+# =========================================================
+
+print("\n\n" + "="*60)
+print("7. ÍNDICES")
+print("="*60)
+
+muestra_indices = belgica.head(100).copy()
+
+precios_base = np.abs(muestra_indices["VALUE"][:50]) + 1
+precios_actuales = np.abs(muestra_indices["VALUE"][50:100]) + 1
+
+cantidades_base = np.random.randint(1, 10, 50)
+cantidades_actuales = np.random.randint(1, 10, 50)
+
+# =========================================================
+# 7.1 ÍNDICE PAASCHE
+# =========================================================
+
+paasche = (
+    np.sum(precios_actuales.values * cantidades_actuales) /
+    np.sum(precios_base.values * cantidades_actuales)
+) * 100
+
+print("\n7.1 ÍNDICE PAASCHE")
+print("Resultado:", paasche)
+
+# =========================================================
+# 7.2 ÍNDICE LASPEYRES
+# =========================================================
+
+laspeyres = (
+    np.sum(precios_actuales.values * cantidades_base) /
+    np.sum(precios_base.values * cantidades_base)
+) * 100
+
+print("\n7.2 ÍNDICE LASPEYRES")
+print("Resultado:", laspeyres)
+
+# =========================================================
+# 7.3 ÍNDICE FISHER
+# =========================================================
+
+fisher = np.sqrt(paasche * laspeyres)
+
+print("\n7.3 ÍNDICE FISHER")
+print("Resultado:", fisher)
+
+# =========================================================
+# RESUMEN FINAL
+# =========================================================
+
+print("\n\n" + "="*60)
+print("ANÁLISIS COMPLETADO ✅")
+print("="*60)
+
+print("\nResumen:")
+print("- Dataset total:", N_total)
+print("- Datos de Bélgica:", len(belgica))
+print("- Media:", media_ng)
+print("- Mediana:", mediana_metrica_ng)
+print("- Desviación estándar:", desv_std)
+
+print("\nProyecto finalizado correctamente.")
+'''
+
+doc.append(
+    NoEscape(
+        r'\section*{SCRIPT COMPLETO EN PYTHON}'
+    )
+)
+
+doc.append(NoEscape(r'\begin{landscape}'))
+
+doc.append(NoEscape(r'\begin{lstlisting}'))
+doc.append(NoEscape(script_python))
+doc.append(NoEscape(r'\end{lstlisting}'))
+
+doc.append(NoEscape(r'\end{landscape}'))
+
+doc.append(NoEscape(r'\newpage'))
+
+# =========================================================
+# FUNCIÓN TEMAS
+# =========================================================
+
+def limpiar_texto(texto):
+
+    texto = texto.replace("\\newline%", "")
+    texto = texto.replace("\\newline", "")
+    texto = texto.replace("%", "")
+
+    return texto.strip()
+
+def agregar_tema(
+    titulo,
+    resultado,
+    interpretacion,
+    grafica=None
+):
+
+    resultado = limpiar_texto(resultado)
+
+    doc.append(
+        NoEscape(
+            r'\section*{' + titulo + '}'
+        )
+    )
+
+    doc.append(
+        NoEscape(
+            r'\textbf{Resultado del Script:}'
+        )
+    )
+
+    doc.append(NoEscape(r'\vspace{0.3cm}'))
+
+    doc.append(NoEscape(r'\begin{verbatim}'))
+    doc.append(NoEscape(resultado))
+    doc.append(NoEscape(r'\end{verbatim}'))
+
+    # =====================================================
+    # GRAFICAS
+    # =====================================================
+
+    if grafica:
+
+        if os.path.exists(grafica):
+
+            doc.append(NoEscape(r'''
+            \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=14cm]{''' + grafica + r'''}
+            \end{figure}
+            '''))
+
+        else:
+
+            doc.append(
+                NoEscape(
+                    r'\textbf{No se encontró la gráfica: ' + grafica + '}'
+                )
+            )
+
+    doc.append(NoEscape(r'\vspace{0.4cm}'))
+
+    doc.append(
+        NoEscape(
+            r'\textbf{Interpretación:}'
+        )
+    )
+
+    doc.append(NoEscape(r'\vspace{0.2cm}'))
+
+    doc.append(interpretacion)
+
+    doc.append(NoEscape(r'\newpage'))
+
+# =========================================================
+# 1 INTRODUCCIÓN
+# =========================================================
+
+agregar_tema(
+    "1.1 Datos Totales (N)",
+r'''
+============================================================
+PROYECTO FINAL - ESTADÍSTICA
+OCDE DATA EXPLORER - BÉLGICA
+============================================================
+TOTAL DE OBSERVACIONES: 9963954
+''',
+r'''
+El análisis se realizó a partir de un dataset masivo de aproximadamente 10
+millones de registros provenientes de la API oficial de la OCDE.
+'''
+)
+
+agregar_tema(
+    "1.2 Datos filtrados de Bélgica",
+r'''
+============================================================
+DATOS FILTRADOS DE BÉLGICA
+============================================================
+Número de registros de Bélgica:
+101673
+''',
+r'''
+El análisis se realizó a partir de un dataset masivo de aproximadamente 10
+millones de registros provenientes de la API oficial de la OCDE, de los cuales 101,673
+corresponden a Bélgica.
+'''
+)
+
+# =========================================================
+# 2 MEDIDAS DE TENDENCIA CENTRAL
+# =========================================================
+
+agregar_tema(
+    "2.1 Datos Agrupados - Moda",
+r'''
+============================================================
+2. MEDIDAS DE TENDENCIA CENTRAL
+============================================================
+2.1 MODA AGRUPADA
+
+MODA AGRUPADA NOMINAL
+Moda: A
+Frecuencia: 1287
+
+MODA AGRUPADA ORDINAL
+Moda: Bajo
+Frecuencia: 101421
+
+MODA AGRUPADA MÉTRICA
+Intervalo modal: (-224.896, 22489.634]
+Frecuencia: 100602
+''',
+r'''
+En la moda nominal, la categoría más frecuente fue “A”, correspondiente al sector
+de agricultura, silvicultura y pesca. En la moda ordinal predominó el nivel “Bajo”,
+mostrando una mayor concentración de valores bajos. Finalmente, la moda
+métrica agrupada indica el intervalo donde se concentra la mayor cantidad de
+datos comerciales de Bélgica.
+'''
+)
+
+agregar_tema(
+    "2.2 Datos Agrupados - Mediana",
+r'''
+2.2 MEDIANA AGRUPADA
+
+MEDIANA AGRUPADA ORDINAL
+Código mediano: 0.0
+Nivel aproximado: Bajo
+
+MEDIANA AGRUPADA MÉTRICA
+Posición: 50836.5
+Intervalo mediano: (-224.896, 22489.634]
+''',
+r'''
+En la mediana agrupada ordinal, el nivel "Bajo" se ubicó como el valor central de
+los datos, indicando que gran parte de los registros se concentra en niveles bajos.
+En la mediana métrica agrupada, el intervalo central fue (-224.896, 22489.634],
+mostrando que la mitad de los valores comerciales de Bélgica se encuentra dentro
+de ese rango.
+'''
+)
+
+agregar_tema(
+    "2.3 Datos Agrupados - Media",
+r'''
+2.3 MEDIA AGRUPADA
+
+MEDIA AGRUPADA MÉTRICA
+Media agrupada: 11632.349895208166
+''',
+r'''
+La media agrupada muestra que el valor promedio de los datos comerciales
+analizados de Bélgica fue de 11632.35. Además, la mayor concentración de
+registros se encuentra en los primeros intervalos, lo que indica que predominan
+valores económicos relativamente bajos dentro del conjunto de datos.
+'''
+)
+
+agregar_tema(
+    "2.4 Datos No Agrupados - Moda",
+r'''
+2.4 MODA NO AGRUPADA
+
+MODA NO AGRUPADA NOMINAL
+Moda: A
+Frecuencia: 1287
+
+MODA NO AGRUPADA ORDINAL
+Moda: Bajo
+Frecuencia: 101421
+
+MODA NO AGRUPADA MÉTRICA
+Moda: 0.0
+Frecuencia: 6271
+''',
+r'''
+En la moda no agrupada nominal, la categoría más frecuente fue “A”,
+correspondiente al sector de agricultura, silvicultura y pesca. En la moda ordinal
+predominó el nivel “Bajo”, indicando una mayor presencia de valores bajos. Por
+último, en la moda métrica el valor más repetido fue 0.0, con 6271 registros.
+'''
+)
+
+agregar_tema(
+    "2.5 Datos No Agrupados - Mediana",
+r'''
+2.5 MEDIANA NO AGRUPADA
+
+MEDIANA NO AGRUPADA ORDINAL
+Resultado: Bajo
+
+MEDIANA NO AGRUPADA MÉTRICA
+Mediana: 13.492
+''',
+r'''
+En la mediana no agrupada ordinal, el nivel central fue “Bajo”, mostrando que la
+mayoría de los registros se concentra en valores bajos. En la mediana métrica, el
+valor central fue 13.492, indicando que la mitad de los datos comerciales de
+Bélgica se encuentra por debajo de esa cantidad y la otra mitad por encima.
+'''
+)
+
+agregar_tema(
+    "2.6 Datos No Agrupados - Media",
+r'''
+2.6 MEDIA NO AGRUPADA
+
+MEDIA NO AGRUPADA MÉTRICA
+Media: 1044.3462705142956
+''',
+r'''
+La media no agrupada muestra que el promedio de los valores comerciales
+registrados en la base TiVA de Bélgica fue de 1044.35, reflejando el
+comportamiento general de las actividades económicas.
+'''
+)
+
+# =========================================================
+# 3 DISPERSIÓN
+# =========================================================
+
+agregar_tema(
+    "3.1 Rango",
+r'''
+3.1 RANGO
+Rango: 224896.344
+''',
+r'''
+El rango de 224896.344 muestra una gran diferencia entre el valor mínimo y
+máximo de los datos comerciales de Bélgica en la base TiVA, indicando una alta
+variabilidad en las actividades económicas analizadas.
+'''
+)
+
+agregar_tema(
+    "3.2 Rango Intercuartílico",
+r'''
+3.2 RANGO INTERCUARTÍLICO
+
+Q1: 1.614
+Q3: 127.275
+RIC: 125.661
+''',
+r'''
+El rango intercuartílico de 125.661 muestra la dispersión de la parte central de los
+datos comerciales de Bélgica en la base TiVA. Esto indica que el 50% de los valores
+se concentra entre 1.614 y 127.275.
+'''
+)
+
+agregar_tema(
+    "3.3 Varianza",
+r'''
+3.3 VARIANZA
+
+Varianza: 49432084.416196465
+''',
+r'''
+La varianza de 49432084.42 indica una alta dispersión en los valores comerciales
+de Bélgica dentro de la base TiVA, mostrando que los datos se alejan
+considerablemente del promedio.
+'''
+)
+
+agregar_tema(
+    "3.4 Desviación Estándar",
+r'''
+3.4 DESVIACIÓN ESTÁNDAR
+
+Desviación estándar: 7030.795432680179
+''',
+r'''
+La desviación estándar de 7030.80 muestra que los datos comerciales de Bélgica en la base TiVA presentan una gran variación respecto al promedio, lo que indica diferencias importantes entre los valores registrados.
+''',
+grafica="grafica_desviacion.png"
+)
+
+agregar_tema(
+    "3.5 Desviación Media",
+r'''
+3.5 DESVIACIÓN MEDIA
+
+Desviación media: 1740.440976337409
+''',
+r'''
+La desviación media de 1740.44 indica que los valores del sector de agricultura, silvicultura y pesca presentan diferencias importantes respecto al promedio, mostrando variación en el comportamiento comercial de las actividades analizadas para Bélgica.
+'''
+)
+
+# =========================================================
+# 4 PROBABILIDAD
+# =========================================================
+
+agregar_tema(
+    "4.1 Diagrama de Venn",
+r'''
+4.1 DIAGRAMA DE VENN
+
+Conjunto USA: 1027
+Conjunto C10T12: 1287
+Intersección: 13
+''',
+r'''
+El diagrama de Venn muestra que existen 1027 registros relacionados con USA y 1287 del sector de alimentos, bebidas y tabaco (C10T12). Además, solo 13 registros pertenecen a ambos conjuntos al mismo tiempo, indicando una relación pequeña entre ellos.
+''',
+grafica="grafica_venn.png"
+)
+
+agregar_tema(
+    "4.2 Conteo",
+r'''
+4.2 CONTEO
+
+ACTIVITY
+B09          1287
+C301         1287
+A03          1287
+''',
+r'''
+El conteo muestra que sectores como minería (B09), construcción de barcos y equipo de transporte (C301), pesca y acuicultura (A03), productos derivados del petróleo (C19) y generación de energía (D) presentan la misma cantidad de registros, lo que indica una participación equilibrada de estas actividades económicas dentro de los datos analizados de Bélgica.
+'''
+)
+
+agregar_tema(
+    "4.3 Combinación",
+r'''
+4.3 COMBINACIÓN
+
+C(10,3) = 120
+''',
+r'''
+La combinación C(10, 3) = 120 indica que, a partir de los 10 sectores económicos analizados, se pueden formar 120 grupos diferentes de 3 sectores sin importar el orden en que se seleccionen.
+'''
+)
+
+agregar_tema(
+    "4.4 Permutación",
+r'''
+4.4 PERMUTACIÓN
+
+P(10,3) = 720
+''',
+r'''
+La permutación P(10, 3) = 720 muestra que, con los 10 sectores económicos analizados, se pueden formar 720 arreglos distintos de 3 sectores cuando sí importa el orden de selección.
+'''
+)
+
+agregar_tema(
+    "4.5 Probabilidad Condicional",
+r'''
+4.5 PROBABILIDAD CONDICIONAL
+
+P(A|B): 0.010101010101010102
+''',
+r'''
+La probabilidad condicional P(A∣B)=0.0101P(A|B)=0.0101P(A∣B)=0.0101 indica que la probabilidad de que un registro pertenezca a USA, dado que corresponde al sector de alimentos, bebidas y tabaco (C10T12), es cercana al 1%, mostrando una relación baja entre ambas actividades analizadas.
+'''
+)
+
+agregar_tema(
+    "4.6 Teorema de Bayes",
+r'''
+4.6 TEOREMA DE BAYES
+
+Resultado: 0.00010203040506070812
+''',
+r'''
+El resultado de 0.0001020.0001020.000102 en el Teorema de Bayes significa que la probabilidad de que ambos eventos estén relacionados es extremadamente pequeña, aproximadamente del 0.01%. Esto indica que casi no existen coincidencias entre los registros de USA y el sector de alimentos, bebidas y tabaco dentro de los datos analizados de Bélgica.
+'''
+)
+
+# =========================================================
+# 5 DISTRIBUCIONES
+# =========================================================
+
+agregar_tema(
+    "5.1 Distribución Binomial",
+r'''
+5.1 DISTRIBUCIÓN BINOMIAL
+''',
+r'''
+La distribución binomial muestra que los valores más probables se concentran entre 4 y 6 eventos, especialmente en 5, que tiene la probabilidad más alta. Esto indica que los datos comerciales analizados de Bélgica tienden a comportarse alrededor de un punto medio y no en los valores extremos.
+''',
+grafica="grafica_binomial.png"
+)
+
+agregar_tema(
+    "5.2 Distribución Poisson",
+r'''
+5.2 DISTRIBUCIÓN POISSON
+''',
+r'''
+La distribución de Poisson muestra que los valores más probables se encuentran entre 1 y 3 eventos, mientras que las probabilidades disminuyen rápidamente en valores mayores. Esto indica que, en los datos comerciales analizados de Bélgica, los eventos tienden a ocurrir en cantidades pequeñas y con baja frecuencia en niveles altos.
+''',
+grafica="grafica_poisson.png"
+)
+
+agregar_tema(
+    "5.3 Distribución Hipergeométrica",
+r'''
+5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA
+''',
+r'''
+La distribución hipergeométrica muestra que la mayor probabilidad se concentra en obtener 2 eventos, mientras que los valores más altos tienen probabilidades mucho menores. Esto indica que, en los datos comerciales analizados de Bélgica, es más común encontrar cantidades moderadas de coincidencias que cantidades extremas.
+''',
+grafica="grafica_hiper.png"
+)
+
+# =========================================================
+# 6 DISTRIBUCIONES NORMALES
+# =========================================================
+
+agregar_tema(
+    "6.1 Distribución Normal",
+r'''
+6.1 DISTRIBUCIÓN NORMAL
+''',
+r'''
+La distribución normal muestra que los valores comerciales analizados se concentran alrededor de una media de 981.31, aunque la desviación estándar elevada indica una gran variación entre los registros, con valores que van desde 0 hasta 188886.41.
+''',
+grafica="grafica_normal.png"
+)
+
+agregar_tema(
+    "6.2 Distribución Normal Estándar",
+r'''
+6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR
+''',
+r'''
+La distribución normal estándar muestra que los primeros valores Z son negativos y cercanos a cero, indicando que esos registros comerciales se encuentran ligeramente por debajo de la media y no presentan diferencias extremas respecto al comportamiento general de los datos analizados.
+''',
+grafica="grafica_z.png"
+)
+
+# =========================================================
+# 7 ÍNDICES
+# =========================================================
+
+agregar_tema(
+    "7.1 Índice Paasche",
+r'''
+7.1 ÍNDICE PAASCHE
+
+Resultado: 84.06134366643018
+''',
+r'''
+El índice Paasche de 84.06 indica que, considerando las cantidades actuales de los sectores económicos analizados, los valores comerciales de Bélgica presentan una disminución respecto al período de referencia.
+'''
+)
+
+agregar_tema(
+    "7.2 Índice Laspeyres",
+r'''
+7.2 ÍNDICE LASPEYRES
+
+Resultado: 77.66554433221098
+''',
+r'''
+El índice Laspeyres de 77.67 muestra que, tomando como base las cantidades del período inicial, los valores comerciales de Bélica presentan una disminución en comparación con el período de referencia.
+'''
+)
+
+agregar_tema(
+    "7.3 Índice Fisher",
+r'''
+7.3 ÍNDICE FISHER
+
+Resultado: 80.80018572472687
+''',
+r'''
+El índice Fisher de 80.80 representa un promedio entre los índices de Paasche y Laspeyres, indicando que los valores comerciales de Bélgica presentan una disminución general respecto al período de referencia, considerando tanto las cantidades actuales como las iniciales.
+'''
+)
+
+# =========================================================
+# FINAL
+# =========================================================
+
+print("Generando PDF...")
+
+doc.generate_pdf(
+    clean_tex=False,
+    compiler='xelatex'
+)
+
+print("PDF generado correctamente ✅")
+
+# =========================================================
+# ABRIR AUTOMÁTICAMENTE
+# =========================================================
+
+pdf_file = nombre_pdf + ".pdf"
+
+sistema = platform.system()
+
+if sistema == "Windows":
+    os.startfile(pdf_file)
+
+elif sistema == "Darwin":
+    subprocess.call(["open", pdf_file])
+
+else:
+    subprocess.call(["xdg-open", pdf_file])
+
+print("PDF abierto automáticamente ✅")
+
