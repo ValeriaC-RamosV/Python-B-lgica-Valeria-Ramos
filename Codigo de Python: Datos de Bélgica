@@ -1,0 +1,726 @@
+# =========================================================
+# PROYECTO FINAL ESTADÍSTICA
+# OCDE - BÉLGICA
+# BIG DATA ECONÓMICO
+# =========================================================
+
+# =========================================================
+# IMPORTACIONES
+# =========================================================
+
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+from math import factorial, comb, perm
+from matplotlib_venn import venn2
+
+# =========================================================
+# CONFIGURACIÓN
+# =========================================================
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+
+# =========================================================
+# INTRODUCCIÓN
+# =========================================================
+
+print("="*60)
+print("PROYECTO FINAL - ESTADÍSTICA")
+print("OCDE DATA EXPLORER - BÉLGICA")
+print("="*60)
+
+print("\nEste proyecto utiliza Big Data económico de la OCDE")
+print("para realizar análisis estadísticos sobre Bélgica.")
+
+# =========================================================
+# API OCDE
+# =========================================================
+
+url = "https://sdmx.oecd.org/sti-public/rest/data/OECD.STI.PIE,DSD_TIVA_MAINLV@DF_MAINLV,1.1/FFD_DVA.....A?startPeriod=2010&dimensionAtObservation=AllDimensions&format=jsondata"
+
+print("\nConectando con API de la OCDE...")
+
+response = requests.get(url)
+
+print("Status Code:", response.status_code)
+
+# =========================================================
+# CARGAR JSON
+# =========================================================
+
+data = response.json()
+
+print("\nJSON cargado correctamente ✅")
+
+# =========================================================
+# EXTRAER OBSERVACIONES
+# =========================================================
+
+observations = data['data']['dataSets'][0]['observations']
+
+N_total = len(observations)
+
+print("\nTOTAL DE OBSERVACIONES:", N_total)
+
+# =========================================================
+# EXTRAER DIMENSIONES
+# =========================================================
+
+dimensions = data['data']['structures'][0]['dimensions']['observation']
+
+dim_values = {}
+
+for dim in dimensions:
+
+    dim_name = dim['id']
+
+    values = []
+
+    for v in dim['values']:
+        values.append(v.get('id', ''))
+
+    dim_values[dim_name] = values
+
+# =========================================================
+# CONVERTIR A DATAFRAME
+# =========================================================
+
+rows = []
+
+for key, value in observations.items():
+
+    indexes = list(map(int, key.split(":")))
+
+    row = {}
+
+    for i, dim_name in enumerate(dim_values.keys()):
+        row[dim_name] = dim_values[dim_name][indexes[i]]
+
+    row["VALUE"] = value[0]
+
+    rows.append(row)
+
+# =========================================================
+# CREAR DATAFRAME
+# =========================================================
+
+df = pd.DataFrame(rows)
+
+print("\nDataFrame creado correctamente ✅")
+
+# =========================================================
+# FILTRAR BÉLGICA
+# =========================================================
+
+belgica = df[df["REF_AREA"] == "BEL"].copy()
+
+print("\n" + "="*60)
+print("DATOS FILTRADOS DE BÉLGICA")
+print("="*60)
+
+print("\nNúmero de registros de Bélgica:")
+print(len(belgica))
+
+print("\nPrimeras filas:")
+print(belgica.head())
+
+# =========================================================
+# CREAR VARIABLE ORDINAL
+# =========================================================
+
+belgica["NIVEL"] = pd.cut(
+    belgica["VALUE"],
+    bins=3,
+    labels=["Bajo", "Medio", "Alto"]
+)
+
+# =========================================================
+# 2. MEDIDAS DE TENDENCIA CENTRAL
+# =========================================================
+
+print("\n\n" + "="*60)
+print("2. MEDIDAS DE TENDENCIA CENTRAL")
+print("="*60)
+
+# =========================================================
+# 2.1 MODA AGRUPADA
+# =========================================================
+
+print("\n\n2.1 MODA AGRUPADA")
+print("-"*60)
+
+nmoda_nominal = belgica["ACTIVITY"].mode()[0]
+frecuencia_nominal = belgica["ACTIVITY"].value_counts().iloc[0]
+
+print("\nMODA AGRUPADA NOMINAL")
+print("Moda:", nmoda_nominal)
+print("Frecuencia:", frecuencia_nominal)
+
+moda_ordinal = belgica["NIVEL"].mode()[0]
+frecuencia_ordinal = belgica["NIVEL"].value_counts().iloc[0]
+
+print("\nMODA AGRUPADA ORDINAL")
+print("Moda:", moda_ordinal)
+print("Frecuencia:", frecuencia_ordinal)
+
+intervalos = pd.cut(belgica["VALUE"], bins=10)
+moda_metrica = intervalos.value_counts().idxmax()
+frecuencia_metrica = intervalos.value_counts().max()
+
+print("\nMODA AGRUPADA MÉTRICA")
+print("Intervalo modal:", moda_metrica)
+print("Frecuencia:", frecuencia_metrica)
+
+# =========================================================
+# 2.2 MEDIANA AGRUPADA
+# =========================================================
+
+print("\n\n2.2 MEDIANA AGRUPADA")
+print("-"*60)
+
+ordinal_codigos = belgica["NIVEL"].cat.codes
+
+mediana_ordinal = ordinal_codigos.median()
+
+niveles = ["Bajo", "Medio", "Alto"]
+
+print("\nMEDIANA AGRUPADA ORDINAL")
+print("Código mediano:", mediana_ordinal)
+print("Nivel aproximado:", niveles[int(mediana_ordinal)])
+
+intervalos_mediana = pd.cut(belgica["VALUE"], bins=10)
+
+tabla_mediana = intervalos_mediana.value_counts().sort_index()
+
+frecuencia_acumulada = tabla_mediana.cumsum()
+
+N = len(belgica)
+
+posicion_mediana = N / 2
+
+intervalo_mediano = frecuencia_acumulada[
+    frecuencia_acumulada >= posicion_mediana
+].index[0]
+
+print("\nMEDIANA AGRUPADA MÉTRICA")
+print("Posición:", posicion_mediana)
+print("Intervalo mediano:", intervalo_mediano)
+
+# =========================================================
+# 2.3 MEDIA AGRUPADA
+# =========================================================
+
+print("\n\n2.3 MEDIA AGRUPADA")
+print("-"*60)
+
+intervalos_media = pd.cut(belgica["VALUE"], bins=10)
+
+tabla_media = intervalos_media.value_counts().sort_index()
+
+marcas_clase = []
+
+for intervalo in tabla_media.index:
+
+    marca = (intervalo.left + intervalo.right) / 2
+
+    marcas_clase.append(marca)
+
+tabla_agrupada = pd.DataFrame({
+    "Intervalo": tabla_media.index,
+    "Frecuencia": tabla_media.values,
+    "Marca_Clase": marcas_clase
+})
+
+tabla_agrupada["f_x_m"] = (
+    tabla_agrupada["Frecuencia"] *
+    tabla_agrupada["Marca_Clase"]
+)
+
+media_agrupada = (
+    tabla_agrupada["f_x_m"].sum() /
+    tabla_agrupada["Frecuencia"].sum()
+)
+
+print("\nMEDIA AGRUPADA MÉTRICA")
+print("Media agrupada:", media_agrupada)
+
+print("\nPrimeros intervalos:")
+print(tabla_agrupada.head())
+
+# =========================================================
+# 2.4 MODA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.4 MODA NO AGRUPADA")
+print("-"*60)
+
+moda_nominal_ng = belgica["ACTIVITY"].mode()[0]
+frecuencia_nominal_ng = belgica["ACTIVITY"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA NOMINAL")
+print("Moda:", moda_nominal_ng)
+print("Frecuencia:", frecuencia_nominal_ng)
+
+moda_ordinal_ng = belgica["NIVEL"].mode()[0]
+frecuencia_ordinal_ng = belgica["NIVEL"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA ORDINAL")
+print("Moda:", moda_ordinal_ng)
+print("Frecuencia:", frecuencia_ordinal_ng)
+
+moda_metrica_ng = belgica["VALUE"].mode()[0]
+frecuencia_metrica_ng = belgica["VALUE"].value_counts().iloc[0]
+
+print("\nMODA NO AGRUPADA MÉTRICA")
+print("Moda:", moda_metrica_ng)
+print("Frecuencia:", frecuencia_metrica_ng)
+
+# =========================================================
+# 2.5 MEDIANA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.5 MEDIANA NO AGRUPADA")
+print("-"*60)
+
+mediana_ordinal_ng = ordinal_codigos.median()
+
+print("\nMEDIANA NO AGRUPADA ORDINAL")
+print("Resultado:", niveles[int(mediana_ordinal_ng)])
+
+mediana_metrica_ng = belgica["VALUE"].median()
+
+print("\nMEDIANA NO AGRUPADA MÉTRICA")
+print("Mediana:", mediana_metrica_ng)
+
+# =========================================================
+# 2.6 MEDIA NO AGRUPADA
+# =========================================================
+
+print("\n\n2.6 MEDIA NO AGRUPADA")
+print("-"*60)
+
+media_ng = belgica["VALUE"].mean()
+
+print("\nMEDIA NO AGRUPADA MÉTRICA")
+print("Media:", media_ng)
+
+# =========================================================
+# 3. MEDIDAS DE DISPERSIÓN
+# =========================================================
+
+print("\n\n" + "="*60)
+print("3. MEDIDAS DE DISPERSIÓN")
+print("="*60)
+
+# =========================================================
+# 3.1 RANGO
+# =========================================================
+
+rango = belgica["VALUE"].max() - belgica["VALUE"].min()
+
+print("\n3.1 RANGO")
+print("Rango:", rango)
+
+# =========================================================
+# 3.2 RANGO INTERCUARTÍLICO
+# =========================================================
+
+Q1 = belgica["VALUE"].quantile(0.25)
+Q3 = belgica["VALUE"].quantile(0.75)
+
+RIC = Q3 - Q1
+
+print("\n3.2 RANGO INTERCUARTÍLICO")
+print("Q1:", Q1)
+print("Q3:", Q3)
+print("RIC:", RIC)
+
+# =========================================================
+# 3.3 VARIANZA
+# =========================================================
+
+varianza = belgica["VALUE"].var()
+
+print("\n3.3 VARIANZA")
+print("Varianza:", varianza)
+
+# =========================================================
+# 3.4 DESVIACIÓN ESTÁNDAR
+# =========================================================
+
+desv_std = belgica["VALUE"].std()
+
+print("\n3.4 DESVIACIÓN ESTÁNDAR")
+print("Desviación estándar:", desv_std)
+
+# TABLA DESVIACIÓN ESTÁNDAR
+
+tabla_desv = pd.DataFrame({
+    "Media": [belgica["VALUE"].mean()],
+    "Desviacion_Estandar": [desv_std],
+    "Valor_Minimo": [belgica["VALUE"].min()],
+    "Valor_Maximo": [belgica["VALUE"].max()]
+})
+
+print("\nTABLA DESVIACIÓN ESTÁNDAR")
+print(tabla_desv)
+
+# GRÁFICA DESVIACIÓN ESTÁNDAR
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    belgica["VALUE"].sample(5000, random_state=42),
+    bins=30
+)
+
+plt.axvline(
+    belgica["VALUE"].mean(),
+    linestyle='dashed',
+    linewidth=2
+)
+
+plt.title("3.4 DESVIACIÓN ESTÁNDAR")
+plt.xlabel("VALUE")
+plt.ylabel("Frecuencia")
+
+plt.show()
+
+# =========================================================
+# 3.5 DESVIACIÓN MEDIA
+# =========================================================
+
+media = belgica["VALUE"].mean()
+
+desv_media = np.mean(np.abs(belgica["VALUE"] - media))
+
+print("\n3.5 DESVIACIÓN MEDIA")
+print("Desviación media:", desv_media)
+
+# =========================================================
+# 4. INTRODUCCIÓN PROBABILIDAD
+# =========================================================
+
+print("\n\n" + "="*60)
+print("4. INTRODUCCIÓN PROBABILIDAD")
+print("="*60)
+
+# =========================================================
+# 4.1 DIAGRAMA DE VENN
+# =========================================================
+
+print("\n4.1 DIAGRAMA DE VENN")
+
+A = set(belgica[belgica["COUNTERPART_AREA"] == "USA"].index)
+B = set(belgica[belgica["ACTIVITY"] == "C10T12"].index)
+
+# TABLA VENN
+
+tabla_venn = pd.DataFrame({
+    "Conjunto": ["USA", "C10T12", "Intersección"],
+    "Cantidad": [
+        len(A),
+        len(B),
+        len(A.intersection(B))
+    ]
+})
+
+print("\nTABLA DIAGRAMA DE VENN")
+print(tabla_venn)
+
+# GRÁFICA VENN
+
+plt.figure(figsize=(8,8))
+
+venn2([A, B], ('USA', 'C10T12'))
+
+plt.title("4.1 DIAGRAMA DE VENN")
+
+plt.show()
+
+# =========================================================
+# 4.2 CONTEO
+# =========================================================
+
+conteo = belgica["ACTIVITY"].value_counts().head(10)
+
+print("\n4.2 CONTEO")
+print(conteo)
+
+# =========================================================
+# 4.3 COMBINACIÓN
+# =========================================================
+
+combinacion = comb(10, 3)
+
+print("\n4.3 COMBINACIÓN")
+print("C(10,3) =", combinacion)
+
+# =========================================================
+# 4.4 PERMUTACIÓN
+# =========================================================
+
+permutacion = perm(10, 3)
+
+print("\n4.4 PERMUTACIÓN")
+print("P(10,3) =", permutacion)
+
+# =========================================================
+# 4.5 PROBABILIDAD CONDICIONAL
+# =========================================================
+
+P_A = len(A) / len(belgica)
+P_B = len(B) / len(belgica)
+P_AyB = len(A.intersection(B)) / len(belgica)
+
+P_condicional = P_AyB / P_B
+
+print("\n4.5 PROBABILIDAD CONDICIONAL")
+print("P(A|B):", P_condicional)
+
+# =========================================================
+# 4.6 TEOREMA DE BAYES
+# =========================================================
+
+bayes = (P_AyB * P_A) / P_B
+
+print("\n4.6 TEOREMA DE BAYES")
+print("Resultado:", bayes)
+
+# =========================================================
+# 5. DISTRIBUCIONES VAD
+# =========================================================
+
+print("\n\n" + "="*60)
+print("5. DISTRIBUCIONES DE PROBABILIDAD VAD")
+print("="*60)
+
+# =========================================================
+# 5.1 DISTRIBUCIÓN BINOMIAL
+# =========================================================
+
+x_binomial = np.arange(0, 11)
+
+y_binomial = stats.binom.pmf(x_binomial, 10, 0.5)
+
+tabla_binomial = pd.DataFrame({
+    "x": x_binomial,
+    "Probabilidad": y_binomial
+})
+
+print("\n5.1 DISTRIBUCIÓN BINOMIAL")
+print(tabla_binomial)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_binomial, y_binomial)
+
+plt.title("5.1 DISTRIBUCIÓN BINOMIAL")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 5.2 DISTRIBUCIÓN POISSON
+# =========================================================
+
+x_poisson = np.arange(0, 15)
+
+y_poisson = stats.poisson.pmf(x_poisson, mu=2)
+
+tabla_poisson = pd.DataFrame({
+    "x": x_poisson,
+    "Probabilidad": y_poisson
+})
+
+print("\n5.2 DISTRIBUCIÓN POISSON")
+print(tabla_poisson)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_poisson, y_poisson)
+
+plt.title("5.2 DISTRIBUCIÓN POISSON")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA
+# =========================================================
+
+x_hiper = np.arange(0, 6)
+
+y_hiper = stats.hypergeom.pmf(x_hiper, 20, 7, 5)
+
+tabla_hiper = pd.DataFrame({
+    "x": x_hiper,
+    "Probabilidad": y_hiper
+})
+
+print("\n5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA")
+print(tabla_hiper)
+
+plt.figure(figsize=(10,6))
+
+plt.bar(x_hiper, y_hiper)
+
+plt.title("5.3 DISTRIBUCIÓN HIPERGEOMÉTRICA")
+plt.xlabel("x")
+plt.ylabel("Probabilidad")
+
+plt.show()
+
+# =========================================================
+# 6. DISTRIBUCIONES VAC
+# =========================================================
+
+print("\n\n" + "="*60)
+print("6. DISTRIBUCIONES DE PROBABILIDAD VAC")
+print("="*60)
+
+# =========================================================
+# 6.1 DISTRIBUCIÓN NORMAL
+# =========================================================
+
+print("\n6.1 DISTRIBUCIÓN NORMAL")
+
+muestra = belgica["VALUE"].sample(5000, random_state=42)
+
+mu = muestra.mean()
+sigma = muestra.std()
+
+tabla_normal = pd.DataFrame({
+    "Media": [mu],
+    "Desviacion_Estandar": [sigma],
+    "Minimo": [muestra.min()],
+    "Maximo": [muestra.max()]
+})
+
+print("\nTABLA DISTRIBUCIÓN NORMAL")
+print(tabla_normal)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    muestra,
+    bins=30,
+    density=True
+)
+
+xmin, xmax = plt.xlim()
+
+x = np.linspace(xmin, xmax, 100)
+
+p = stats.norm.pdf(x, mu, sigma)
+
+plt.plot(x, p)
+
+plt.title("6.1 DISTRIBUCIÓN NORMAL")
+plt.xlabel("VALUE")
+plt.ylabel("Densidad")
+
+plt.show()
+
+print("Media:", mu)
+print("Desviación estándar:", sigma)
+
+# =========================================================
+# 6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR
+# =========================================================
+
+print("\n6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR")
+
+z_scores = stats.zscore(muestra)
+
+tabla_z = pd.DataFrame({
+    "Primeros_ZScores": z_scores[:10]
+})
+
+print("\nTABLA Z-SCORES")
+print(tabla_z)
+
+plt.figure(figsize=(10,6))
+
+plt.hist(
+    z_scores,
+    bins=30,
+    density=True
+)
+
+plt.title("6.2 DISTRIBUCIÓN NORMAL ESTÁNDAR")
+plt.xlabel("Z-Score")
+plt.ylabel("Densidad")
+
+plt.show()
+
+# =========================================================
+# 7. ÍNDICES
+# =========================================================
+
+print("\n\n" + "="*60)
+print("7. ÍNDICES")
+print("="*60)
+
+muestra_indices = belgica.head(100).copy()
+
+precios_base = np.abs(muestra_indices["VALUE"][:50]) + 1
+precios_actuales = np.abs(muestra_indices["VALUE"][50:100]) + 1
+
+cantidades_base = np.random.randint(1, 10, 50)
+cantidades_actuales = np.random.randint(1, 10, 50)
+
+# =========================================================
+# 7.1 ÍNDICE PAASCHE
+# =========================================================
+
+paasche = (
+    np.sum(precios_actuales.values * cantidades_actuales) /
+    np.sum(precios_base.values * cantidades_actuales)
+) * 100
+
+print("\n7.1 ÍNDICE PAASCHE")
+print("Resultado:", paasche)
+
+# =========================================================
+# 7.2 ÍNDICE LASPEYRES
+# =========================================================
+
+laspeyres = (
+    np.sum(precios_actuales.values * cantidades_base) /
+    np.sum(precios_base.values * cantidades_base)
+) * 100
+
+print("\n7.2 ÍNDICE LASPEYRES")
+print("Resultado:", laspeyres)
+
+# =========================================================
+# 7.3 ÍNDICE FISHER
+# =========================================================
+
+fisher = np.sqrt(paasche * laspeyres)
+
+print("\n7.3 ÍNDICE FISHER")
+print("Resultado:", fisher)
+
+# =========================================================
+# RESUMEN FINAL
+# =========================================================
+
+print("\n\n" + "="*60)
+print("ANÁLISIS COMPLETADO ✅")
+print("="*60)
+
+print("\nResumen:")
+print("- Dataset total:", N_total)
+print("- Datos de Bélgica:", len(belgica))
+print("- Media:", media_ng)
+print("- Mediana:", mediana_metrica_ng)
+print("- Desviación estándar:", desv_std)
+
+print("\nProyecto finalizado correctamente.")
